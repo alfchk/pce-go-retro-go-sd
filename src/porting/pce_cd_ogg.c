@@ -229,6 +229,7 @@ static bool ogg_open_track(const pce_cd_track_t *t)
 	s_rate = info.sample_rate;
 	strncpy(s_path, t->bin_path, sizeof(s_path) - 1);
 	s_path[sizeof(s_path) - 1] = 0;
+	s_failed_path[0] = 0;
 	s_track_base = t->sample_offset;
 	s_pcm_pos = 0;
 
