@@ -26,7 +26,8 @@ static char     *s_arena;
 static int       s_arena_size;
 static stb_vorbis *s_v;
 static FILE     *s_file;
-static char      s_path[256];
+static char      s_path[512];
+static char s_failed_path[512];
 static uint32_t  s_pcm_pos;       /* next sample frame to decode (absolute in file) */
 static uint32_t  s_track_base;    /* sample offset of current track's INDEX 01 */
 static int       s_channels;
@@ -52,7 +53,7 @@ bool pce_cd_ogg_prepare(const pce_cd_toc_t *toc)
 	/* Leave enough bump for CD-RAM (19 banks) + EXRAM/save_buffer → 32 banks.
 	 * Host has a 1 MiB pool so 256 KiB arenas succeed there; device tops out
 	 * near 168–176 KiB after ADPCM moved out of BSS. */
-	const size_t leave_for_cd = 152u * 1024u;
+	const size_t leave_for_cd = 128u * 1024u;
 	static const size_t try_sz[] = {
 		256u * 1024u,
 		PCE_CD_OGG_ARENA_SIZE, /* 176 */
@@ -180,6 +181,7 @@ void pce_cd_ogg_invalidate_handles(void)
 	s_v = NULL;
 	s_file = NULL;
 	s_path[0] = 0;
+	s_failed_path[0] = 0;
 	s_pcm_pos = 0;
 }
 
@@ -187,6 +189,9 @@ static bool ogg_open_track(const pce_cd_track_t *t)
 {
 	if (!s_arena || s_arena_size <= 0)
 		return false;
+
+ 	if (s_failed_path[0] && strcmp(s_failed_path, t->bin_path) == 0)
+        return false;
 
 	if (s_v && s_file && strcmp(s_path, t->bin_path) == 0) {
 		/* Same file — only adjust track base / seek if needed by caller. */
@@ -197,8 +202,11 @@ static bool ogg_open_track(const pce_cd_track_t *t)
 	pce_cd_ogg_close_stream();
 
 	s_file = fopen(t->bin_path, "rb");
-	if (!s_file)
+	if (!s_file) {
+	strncpy(s_failed_path, t->bin_path, sizeof(s_failed_path) - 1);
+	s_failed_path[sizeof(s_failed_path) - 1] = 0;
 		return false;
+	}
 
 	stb_vorbis_alloc alloc;
 	alloc.alloc_buffer = s_arena;
@@ -211,6 +219,8 @@ static bool ogg_open_track(const pce_cd_track_t *t)
 			err, t->bin_path, s_arena_size);
 		fclose(s_file);
 		s_file = NULL;
+		strncpy(s_failed_path, t->bin_path, sizeof(s_failed_path) - 1);
+		s_failed_path[sizeof(s_failed_path) - 1] = 0;
 		return false;
 	}
 
@@ -284,9 +294,12 @@ int pce_cd_ogg_read_sectors(const pce_cd_toc_t *toc, uint32_t lba,
 	if (!ogg_seek_abs(want_sample)) {
 		/* Hard seek failed — reopen and retry once. */
 		pce_cd_ogg_close_stream();
-		if (!ogg_open_track(t) || !ogg_seek_abs(want_sample))
+		if (!ogg_open_track(t) || !ogg_seek_abs(want_sample)) {
+        strncpy(s_failed_path, t->bin_path, sizeof(s_failed_path) - 1);
+        s_failed_path[sizeof(s_failed_path) - 1] = 0;
 			return 0;
 	}
+}
 
 	int written = 0;
 	for (int s = 0; s < n; s++) {
