@@ -250,17 +250,6 @@ static char  s_bin_path[2][256];
  * streaming is always linear; f_lseek on every batch was pure FatFs overhead). */
 static long  s_bin_pos[2] = { -1, -1 };
 
-bool pce_cd_prepare_ogg(const pce_cd_toc_t * toc)
-{
-#ifdef PCE_CD_OGG
-    return pce_cd_ogg_prepare(toc);
-#else
-    (void)toc;
-    return true;
-#endif
-}
-
-
 void pce_cd_close(void)
 {
     for (int i = 0; i < 2; i++) {
