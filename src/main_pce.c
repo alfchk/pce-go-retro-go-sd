@@ -744,7 +744,7 @@ pce_osd_getromdata(unsigned char **data)
 #endif
         if (pce_cd_parse_cue(ACTIVE_FILE->path, &s_pcecd_toc)) {
             /* Reserve OGG decode arena BEFORE CD-RAM mapping (below) eats the bump. */
-            pce_cd_ogg_prepare(&s_pcecd_toc);
+            pce_cd_prepare_ogg(&s_pcecd_toc);
             mounted = true;
         }
         if (mounted)
