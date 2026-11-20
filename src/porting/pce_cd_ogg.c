@@ -17,13 +17,15 @@ extern void osd_log(int type, const char *format, ...);
 #define STB_VORBIS_MAX_CHANNELS      2
 #define STB_VORBIS_NO_PUSHDATA_API
 
+#define STB_VORBIS_DIVIDES_IN_RESIDUE
+#define STB_VORBIS_DIVIDES_IN_CODEBOOK
+#define STB_VORBIS_NO_FAST_SCALED_FLOAT
+
 #include "stb_vorbis.c"
 
 /* Red Book: 44100 / 75 = 588 stereo frames per sector. */
 #define PCE_CDDA_FRAMES_PER_SEC  588
 
-char g_ogg_diag[64] = "OGG:INIT";
-char * g_ogg_diag_ptr = g_ogg_diag;
 static char     *s_arena;
 static int       s_arena_size;
 static stb_vorbis *s_v;
@@ -50,7 +52,6 @@ bool pce_cd_ogg_prepare(const pce_cd_toc_t *toc)
 	if (!pce_cd_ogg_toc_needs_decoder(toc))
 		return true;
 	if (s_arena)
-		snprintf(g_ogg_diag, sizeof(g_ogg_diag), "ARENA:%dK free:%uK", s_arena_size/1024, (unsigned)(free_now/1024));
 		return true;
 
 	/* Leave enough bump for CD-RAM (19 banks) + EXRAM/save_buffer → 32 banks.
@@ -79,7 +80,6 @@ bool pce_cd_ogg_prepare(const pce_cd_toc_t *toc)
 		}
 	}
 	MESSAGE_INFO("PCE-CD OGG: arena alloc FAILED — OGG tracks won't play\n");
-	snprintf(g_ogg_diag, sizeof(g_ogg_diag), "ARENA:FAIL free:%uK", (unsigned)(free_now/1024));
 	return false;
 }
 
@@ -223,7 +223,6 @@ static bool ogg_open_track(const pce_cd_track_t *t)
 			err, t->bin_path, s_arena_size);
 		fclose(s_file);
 		s_file = NULL;
-		snprintf(g_ogg_diag, sizeof(g_ogg_diag), "VORBIS ERR:%d A:%dK", err, s_arena_size/1024);
 		strncpy(s_failed_path, t->bin_path, sizeof(s_failed_path) - 1);
 		s_failed_path[sizeof(s_failed_path) - 1] = 0;
 		return false;
