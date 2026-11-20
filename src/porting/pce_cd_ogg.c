@@ -22,6 +22,7 @@ extern void osd_log(int type, const char *format, ...);
 /* Red Book: 44100 / 75 = 588 stereo frames per sector. */
 #define PCE_CDDA_FRAMES_PER_SEC  588
 
+char g_ogg_diag[64] = "OGG:INIT";
 static char     *s_arena;
 static int       s_arena_size;
 static stb_vorbis *s_v;
