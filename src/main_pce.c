@@ -1179,6 +1179,8 @@ void pce_osd_gfx_blit() {
     sprintf(debugMsg,"FPS:%d.%d,W:%d,H:%d,L:%s", framePerSecond / 10,framePerSecond % 10,current_width,current_height,pce_log);
     odroid_overlay_draw_text(0,0, GW_LCD_WIDTH, debugMsg, curr_colors->sel_c, curr_colors->main_c);
 #endif
+	    extern char g_ogg_diag;
+    odroid_overlay_draw_text(0, 0, GW_LCD_WIDTH, g_ogg_diag, 0xFFFF, 0x0000);
     lcd_swap();
 }
 
