@@ -744,7 +744,7 @@ pce_osd_getromdata(unsigned char **data)
 #endif
         if (pce_cd_parse_cue(ACTIVE_FILE->path, &s_pcecd_toc)) {
             /* Reserve OGG decode arena BEFORE CD-RAM mapping (below) eats the bump. */
-            pce_cd_prepare_ogg(&s_pcecd_toc);
+            pce_cd_ogg_prepare(&s_pcecd_toc);
             mounted = true;
         }
         if (mounted)
@@ -1179,9 +1179,6 @@ void pce_osd_gfx_blit() {
     sprintf(debugMsg,"FPS:%d.%d,W:%d,H:%d,L:%s", framePerSecond / 10,framePerSecond % 10,current_width,current_height,pce_log);
     odroid_overlay_draw_text(0,0, GW_LCD_WIDTH, debugMsg, curr_colors->sel_c, curr_colors->main_c);
 #endif
-	extern char * g_ogg_diag_ptr;
-	odroid_overlay_draw_text(0, 0, GW_LCD_WIDTH, g_ogg_diag_ptr, 0xFFFF, 0x0000);
-
     lcd_swap();
 }
 
