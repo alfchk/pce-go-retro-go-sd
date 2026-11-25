@@ -16,6 +16,9 @@ extern void osd_log(int type, const char *format, ...);
 /* stb_vorbis config — keep footprint small. */
 #define STB_VORBIS_MAX_CHANNELS      2
 #define STB_VORBIS_NO_PUSHDATA_API
+#define STB_VORBIS_DIVIDES_IN_RESIDUE
+#define STB_VORBIS_DIVIDES_IN_CODEBOOK
+#define STB_VORBIS_NO_FAST_SCALED_FLOAT
 
 #include "stb_vorbis.c"
 
